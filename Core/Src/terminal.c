@@ -29,14 +29,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 void initialiseRx() {
   rxPutIndex = rxGetIndex = 0;
   rxBuffer[0] = 0;
-  HAL_UART_Receive_IT(&huart2, &rxCharacter, 1);
+  HAL_UART_Receive_IT(&huart2, (uint8_t *)&rxCharacter, 1);
 }
 
-char readRx() {
-  if (rxPutIndex == rxGetIndex) {
-    return 0;
+void exhaustRx() {
+  while (rxPutIndex - rxGetIndex) {
+    char character = '\0';
+    if (rxPutIndex != rxGetIndex) {
+      character = rxBuffer[rxGetIndex];
+      rxGetIndex = RX_BUFFER_SIZE > rxGetIndex + 1 ? rxGetIndex + 1 : 0;
+    }
+    __io_putchar(character);
   }
-  char character = rxBuffer[rxGetIndex];
-  rxGetIndex = RX_BUFFER_SIZE > rxGetIndex + 1 ? rxGetIndex + 1 : 0;
-  return character;
 }

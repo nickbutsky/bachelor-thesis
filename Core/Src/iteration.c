@@ -1,8 +1,6 @@
 #include "iteration.h"
 
 void iteration() {
-  while (isRxAvailable()) {
-    __io_putchar(readRx());
-  }
+  exhaustRx();
   HAL_Delay(1);
 }
