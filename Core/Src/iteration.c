@@ -1,5 +1,7 @@
 #include "iteration.h"
 
+enum { DHT11_COUNTER_LIMIT = 2000 };
+
 uint16_t counter;
 uint8_t measureDht11 = 1;
 
@@ -21,7 +23,7 @@ void iteration() {
     measureDht11 = 0;
   }
   ++counter;
-  if (counter >= 2000) {
+  if (counter >= DHT11_COUNTER_LIMIT) {
     measureDht11 = 1;
     counter = 0;
   }
