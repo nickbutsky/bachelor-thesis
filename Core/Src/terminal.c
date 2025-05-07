@@ -1,8 +1,8 @@
 #include "terminal.h"
 
-char rxBuffer[RX_BUFFER_SIZE];
-uint8_t rxPutIndex;
-uint8_t rxGetIndex;
+char buffer[BUFFER_LENGTH];
+uint8_t getIndex;
+uint8_t putIndex;
 volatile char rxCharacter;
 
 int __io_putchar(int ch) {
@@ -13,7 +13,6 @@ int __io_putchar(int ch) {
     }
   }
   USART2->DR = (uint8_t)ch;
-  // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
   return ch;
 }
 
@@ -21,23 +20,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   if (huart != &huart2) {
     return;
   }
-  rxBuffer[rxPutIndex] = rxCharacter;
-  rxPutIndex = RX_BUFFER_SIZE > rxPutIndex + 1 ? rxPutIndex + 1 : 0;
+  buffer[putIndex] = rxCharacter;
+  putIndex = BUFFER_LENGTH > putIndex + 1 ? putIndex + 1 : 0;
   HAL_UART_Receive_IT(&huart2, (uint8_t *)&rxCharacter, 1);
 }
 
-void initialiseRx() {
-  rxPutIndex = rxGetIndex = 0;
-  rxBuffer[0] = 0;
+void initialiseTerminal() {
+  putIndex = getIndex = 0;
+  buffer[0] = 0;
   HAL_UART_Receive_IT(&huart2, (uint8_t *)&rxCharacter, 1);
 }
 
-void exhaustRx() {
-  while (rxPutIndex - rxGetIndex) {
+void printEverything() {
+  while (putIndex - getIndex) {
     char character = '\0';
-    if (rxPutIndex != rxGetIndex) {
-      character = rxBuffer[rxGetIndex];
-      rxGetIndex = RX_BUFFER_SIZE > rxGetIndex + 1 ? rxGetIndex + 1 : 0;
+    if (putIndex != getIndex) {
+      character = buffer[getIndex];
+      getIndex = BUFFER_LENGTH > getIndex + 1 ? getIndex + 1 : 0;
     }
     __io_putchar(character);
   }

@@ -2,7 +2,7 @@
 
 #include "main.h"
 
-enum { RX_BUFFER_SIZE = 32 };
+enum { BUFFER_LENGTH = 32 };
 
-void initialiseRx();
-void exhaustRx();
+void initialiseTerminal();
+void printEverything();

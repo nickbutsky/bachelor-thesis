@@ -1,6 +1,6 @@
 #include "setup.h"
 
 void setup() {
-  initialiseRx();
+  initialiseTerminal();
   puts("APPLICATION START");
 }

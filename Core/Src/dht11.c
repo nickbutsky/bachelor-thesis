@@ -1,129 +1,87 @@
-#include "DHT11.h"
+#include "dht11.h"
 
+enum { RESET_DELAY = 500, SET_DELAY = 20, DATA_LENGTH = 42, BUFFER_LENGTH = 5, MAX_TICK_NUMBER = 50000 };
 
-uint8_t		GoDHT11 = 0;
-uint8_t		DHTstat = 0;
-int8_t		DHT_Temp = 0;
-uint8_t		DHT_Hum = 0;
-
-
-
-
-uint16_t DHT_read_cycle(uint8_t neg_tic)
-{
-  uint16_t cnt_tics = 0;
-
-  if (neg_tic) {
-    while ( !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) && (cnt_tics < MAX_TICS)){
-      cnt_tics++;
-    }
-  } else {
-    while ( HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) && (cnt_tics < MAX_TICS)){
-      cnt_tics++;
+static inline uint8_t readData(uint16_t *data) {
+  uint8_t iterator = 0;
+  const uint8_t maxResponseIterator = 200;
+  uint8_t upperBound = (DATA_LENGTH * 2) - 1;
+  uint8_t iteratorOdd = 0;
+  uint16_t tickNumber = 0;
+  HAL_Delay(RESET_DELAY);
+  HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_RESET);
+  HAL_Delay(SET_DELAY);
+  HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_SET);
+  for (iterator = 0; iterator < maxResponseIterator; ++iterator) {
+    if (HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) == GPIO_PIN_RESET) {
+      break;
     }
   }
-  return cnt_tics;
+  if (iterator >= maxResponseIterator) {
+    return 1;
+  }
+  for (iterator = 0; iterator < upperBound; ++iterator) {
+    iteratorOdd = iterator & (uint8_t)1;
+    tickNumber = 0;
+    if (iteratorOdd) {
+      while (!HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) && tickNumber < MAX_TICK_NUMBER) {
+        ++tickNumber;
+      }
+    } else {
+      while (HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) && tickNumber < MAX_TICK_NUMBER) {
+        ++tickNumber;
+      }
+      data[iterator / 2] = tickNumber;
+    }
+  }
+  HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_SET);
+  return tickNumber >= MAX_TICK_NUMBER ? 1 : 0;
 }
 
-uint8_t DHT_read_DHT11(uint8_t *buf)
-{
-	uint16_t 	dt[42];
-	uint16_t 	cnt;
-	uint8_t 	i;
-	uint8_t 	check_sum;
+DHT11 getDht11() {
+  uint16_t data[DATA_LENGTH] = {0};
+  if (readData(data)) {
+    return (DHT11){DHT11_NO_CONNECTION};
+  }
 
-	uint16_t	min_tic = MAX_TICS;
-	uint16_t	max_tic = 0;
+  uint16_t maxTickNumber = 0;
+  uint16_t minTickNumber = MAX_TICK_NUMBER;
+  for (uint8_t i = 2; i < (uint8_t)DATA_LENGTH; ++i) {
+    if (!data[i] || data[i] >= MAX_TICK_NUMBER) {
+      continue;
+    }
+    if (data[i] > maxTickNumber) {
+      maxTickNumber = data[i];
+    }
+    if (data[i] < minTickNumber) {
+      minTickNumber = data[i];
+    }
+  }
+  if (maxTickNumber < minTickNumber) {
+    return (DHT11){DHT11_NO_CONNECTION};
+  }
 
-	uint32_t	mean = 0;
+  uint8_t buffer[BUFFER_LENGTH] = {0};
+  uint16_t maxTickNumberMinTickNumberMean = (maxTickNumber + minTickNumber) / 2;
+  for (uint8_t i = 2; i < (uint8_t)DATA_LENGTH; ++i) {
+    const uint8_t eight = 8;
+    uint8_t bufferIndex = (i - 1) / eight;
+    if (!((i - 1) % eight)) {
+      --bufferIndex;
+    }
+    buffer[bufferIndex] *= 2;
+    if (data[i] > maxTickNumberMinTickNumberMean) {
+      buffer[bufferIndex] |= (uint8_t)1;
+    }
+  }
 
-	//reset DHT11
-	HAL_Delay(500);
-	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);
- 	HAL_Delay(20);
- 	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
-
-    //start reading
- 	cnt = 0;
-	for(i = 0; i < 83 && cnt < MAX_TICS; i++){
-		if (i & 1){
-			cnt = DHT_read_cycle(1);
-		}
-		else {
-			cnt = DHT_read_cycle(0);
-			dt[i/2]= cnt;
-		}
-	}
-
- 	//release line
-	HAL_GPIO_WritePin( GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
-
-	printf("RAW: ");
- 	for(i = 2; i < 42; i++){
-		printf(" %d", dt[i]);
-	}
-	printf("\r\n");
-
-	if (cnt >= MAX_TICS) return DHTstat = DHT11_NO_CONN;
-
-	//find min-max
- 	for(i = 2; i < 42; i++){
- 		mean += dt[i];
- 		if(dt[i] && (dt[i] < MAX_TICS)){
- 			if(dt[i] > max_tic) max_tic = dt[i];
- 			if(dt[i] < min_tic) min_tic = dt[i];
- 		}
- 	}
- 	mean /= 40;
-
- 	printf("RAW DIVIDER: min %d max %d\r\n", min_tic, max_tic);
-
- 	if(max_tic < min_tic) return DHTstat = DHT11_NO_CONN;
- 	max_tic = (max_tic + min_tic) / 2;
-
- 	printf("RAW DIVIDER: minmax %d mean %ld\r\n", max_tic, mean);
-
-	//convert data
- 	for(i = 2; i < 42; i++){
-		(*buf) <<= 1;
-		if (dt[i] > max_tic) {
-			(*buf) |= 1;
- 		}
-		if (!((i-1) % 8) && (i > 2)) {
-			buf++;
-		}
- 	}
-
-	//calculate checksum
-	buf -= 5;
-	check_sum = 0;
-
-	printf("RAW DAT: ");
-	for(i = 0; i < 5; i++){
-		printf(" %d", buf[i]);
-	}
-	printf("\r\n");
-
- 	for(i = 0; i < 4; i++){
-		check_sum += *buf;
-		buf++;
-	}
- 	if(*buf != check_sum){
- 		DHT_Hum = DHT_Temp = 0;
- 		DHTstat = DHT11_CS_ERROR;
- 	} else {
- 		buf -= 4;
- 		DHT_Hum = buf[0];
- 		DHT_Temp = buf[2];
- 		DHTstat = DHT11_OK;
- 	}
-
-	return DHTstat;
+  uint8_t checkSum = 0;
+  for (uint8_t i = 0; i < (uint8_t)BUFFER_LENGTH - 1; ++i) {
+    checkSum += buffer[i];
+  }
+  if (checkSum != buffer[BUFFER_LENGTH - 1]) {
+    return (DHT11){DHT11_CHECKSUM_ERROR};
+    ;
+  }
+  return (DHT11){DHT11_OK, (int8_t)buffer[2], buffer[0]};
 }
-
-
-
-
-
-
-
