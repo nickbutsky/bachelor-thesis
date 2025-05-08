@@ -1,6 +1,6 @@
 #include "iteration.h"
 
-enum { DHT11_COUNTER_LIMIT = 2000 };
+enum { COUNTER_LIMIT = 2000 };
 
 uint16_t counter;
 uint8_t measureDht11 = 1;
@@ -30,17 +30,12 @@ void iteration() {
 
   // =============================================== ADC MEASUREMENT END
   if (photoresistorStatus == PHOTORESISTOR_DONE) {
-    uint32_t voltage = (_INT_REF_V * photoresistorData * 100 + 50) / VREF_DATA / 100;
-    uint32_t calibratedVoltage = voltage * (*voltageFactoryReferencePtr) / VREF_DATA;
-
+    printf("LUX: %ld\n", photoresistorData);
     photoresistorStatus = PHOTORESISTOR_IDLE;
-
-    printf("L=%ld, Vref=%ldm VOLT = %ldmv, VOLT(c) = %ldmv\n", photoresistorData, VREF_DATA, voltage,
-           calibratedVoltage);
   }
 
   ++counter;
-  if (counter >= DHT11_COUNTER_LIMIT) {
+  if (counter >= COUNTER_LIMIT) {
     measureDht11 = 1;
     photoresistorStatus = PHOTORESISTOR_STARTING;
     counter = 0;
