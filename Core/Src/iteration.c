@@ -11,36 +11,38 @@ void iteration() {
     DHT11 dht11 = getDht11();
     switch (dht11.status) {
     case DHT11_OK:
-      printf("RH=%02d%% t=%dC\r\n", dht11.humidity, dht11.temperature);
+      printf("RH=%02d%% t=%dC\n", dht11.humidity, dht11.temperature);
       break;
     case DHT11_NO_CONNECTION:
-      printf("NOT CONNECTED\r\n");
+      puts("NOT CONNECTED");
       break;
     case DHT11_CHECKSUM_ERROR:
-      printf("CHECKSUM ERROR\r\n");
+      puts("CHECKSUM ERROR");
       break;
     }
     measureDht11 = 0;
   }
 
-  if (LIGHT_stat == _LIGHT_START) {
-    LIGHT_stat = _LIGHT_RUN;
+  if (photoresistorStatus == PHOTORESISTOR_STARTING) {
+    photoresistorStatus = PHOTORESISTOR_RUNNNING;
     HAL_ADC_Start_IT(&hadc1);
   }
 
   // =============================================== ADC MEASUREMENT END
-  if (LIGHT_stat == _LIGHT_DONE) {
-    uint32_t VOLT = ((uint32_t)_INT_REF_V * LIGHT_DATA * 100 + 50) / VREF_DATA / 100;
-    uint32_t VOLT_C = ((((uint32_t)_INT_REF_V * LIGHT_DATA * 100 + 50) / VREF_DATA / 100) * (*REF_volt)) / VREF_DATA;
+  if (photoresistorStatus == PHOTORESISTOR_DONE) {
+    uint32_t voltage = (_INT_REF_V * photoresistorData * 100 + 50) / VREF_DATA / 100;
+    uint32_t calibratedVoltage = voltage * (*voltageFactoryReferencePtr) / VREF_DATA;
 
-    LIGHT_stat = _LIGHT_IDLE;
+    photoresistorStatus = PHOTORESISTOR_IDLE;
 
-    printf("L=%d, Vref=%dm VOLT = %dmv, VOLT(c) = %dmv\r\n", LIGHT_DATA, VREF_DATA, (uint16_t)VOLT, (uint16_t)VOLT_C);
+    printf("L=%ld, Vref=%ldm VOLT = %ldmv, VOLT(c) = %ldmv\n", photoresistorData, VREF_DATA, voltage,
+           calibratedVoltage);
   }
 
   ++counter;
   if (counter >= DHT11_COUNTER_LIMIT) {
     measureDht11 = 1;
+    photoresistorStatus = PHOTORESISTOR_STARTING;
     counter = 0;
   }
   HAL_Delay(1);
