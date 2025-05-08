@@ -1,4 +1,4 @@
-#include "ADC.h"
+#include "photoresistor.h"
 
 uint16_t LIGHT_DATA = 0;
 uint16_t VREF_DATA = 0;
