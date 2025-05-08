@@ -2,13 +2,12 @@
 
 #include "main.h"
 
-enum {
+typedef enum {
   PHOTORESISTOR_IDLE,
   PHOTORESISTOR_STARTING,
-  PHOTORESISTOR_RUNNNING,
-  PHOTORESISTOR_RUNNING_REF,
+  PHOTORESISTOR_RUNNING,
   PHOTORESISTOR_DONE
-};
+} PhotoresistorStatus;
 
-extern uint8_t photoresistorStatus;
-extern uint32_t photoresistorData;
+extern PhotoresistorStatus photoresistorStatus;
+extern uint32_t photoresistorValue;

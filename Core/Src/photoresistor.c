@@ -1,12 +1,12 @@
 #include "photoresistor.h"
 
-uint32_t photoresistorData;
-uint8_t photoresistorStatus = PHOTORESISTOR_IDLE;
+PhotoresistorStatus photoresistorStatus = PHOTORESISTOR_IDLE;
+uint32_t photoresistorValue;
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-  if (!(hadc->Instance == ADC1 && photoresistorStatus == PHOTORESISTOR_RUNNNING)) {
+  if (!(hadc->Instance == ADC1 && photoresistorStatus == PHOTORESISTOR_RUNNING)) {
     return;
   }
-  photoresistorData = HAL_ADC_GetValue(&hadc1);
+  photoresistorValue = HAL_ADC_GetValue(&hadc1);
   photoresistorStatus = PHOTORESISTOR_DONE;
 }

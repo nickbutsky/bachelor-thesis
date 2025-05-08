@@ -1,13 +1,15 @@
 #include "iteration.h"
 
-enum { COUNTER_LIMIT = 2000 };
+enum { COUNTER_UPPER_BOUND = 2000 };
 
 uint16_t counter;
 uint8_t measureDht11 = 1;
 
 void iteration() {
   printEverything();
+
   if (measureDht11) {
+    measureDht11 = 0;
     DHT11 dht11 = getDht11();
     switch (dht11.status) {
     case DHT11_OK:
@@ -20,25 +22,26 @@ void iteration() {
       puts("CHECKSUM ERROR");
       break;
     }
-    measureDht11 = 0;
   }
 
-  if (photoresistorStatus == PHOTORESISTOR_STARTING) {
-    photoresistorStatus = PHOTORESISTOR_RUNNNING;
+  switch (photoresistorStatus) {
+  case PHOTORESISTOR_STARTING:
+    photoresistorStatus = PHOTORESISTOR_RUNNING;
     HAL_ADC_Start_IT(&hadc1);
-  }
-
-  // =============================================== ADC MEASUREMENT END
-  if (photoresistorStatus == PHOTORESISTOR_DONE) {
-    printf("LUX: %ld\n", photoresistorData);
+    break;
+  case PHOTORESISTOR_DONE:
     photoresistorStatus = PHOTORESISTOR_IDLE;
+    printf("LUX: %ld\n", photoresistorValue);
+    break;
+  default:
+    break;
   }
 
   ++counter;
-  if (counter >= COUNTER_LIMIT) {
+  if (counter >= COUNTER_UPPER_BOUND) {
+    counter = 0;
     measureDht11 = 1;
     photoresistorStatus = PHOTORESISTOR_STARTING;
-    counter = 0;
   }
   HAL_Delay(1);
 }
