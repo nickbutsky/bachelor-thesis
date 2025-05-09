@@ -3,5 +3,5 @@
 void setup() {
   initialiseTerminal();
   puts("APPLICATION START");
-  photoresistorStatus = PHOTORESISTOR_STARTING;
+  photoresistor.status = PHOTORESISTOR_STARTING;
 }

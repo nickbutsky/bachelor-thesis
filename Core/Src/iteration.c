@@ -24,14 +24,14 @@ void iteration() {
     }
   }
 
-  switch (photoresistorStatus) {
+  switch (photoresistor.status) {
   case PHOTORESISTOR_STARTING:
-    photoresistorStatus = PHOTORESISTOR_RUNNING;
+    photoresistor.status = PHOTORESISTOR_RUNNING;
     HAL_ADC_Start_IT(&hadc1);
     break;
   case PHOTORESISTOR_DONE:
-    photoresistorStatus = PHOTORESISTOR_IDLE;
-    printf("photoresistorValue == %ld/4095\n", photoresistorValue);
+    photoresistor.status = PHOTORESISTOR_IDLE;
+    printf("photoresistorValue == %ld/4095\n", photoresistor.value);
     break;
   default:
     break;
@@ -41,7 +41,7 @@ void iteration() {
   if (counter >= COUNTER_UPPER_BOUND) {
     counter = 0;
     measureDht11 = 1;
-    photoresistorStatus = PHOTORESISTOR_STARTING;
+    photoresistor.status = PHOTORESISTOR_STARTING;
   }
   HAL_Delay(1);
 }

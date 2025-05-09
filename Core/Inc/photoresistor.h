@@ -9,5 +9,7 @@ typedef enum {
   PHOTORESISTOR_DONE
 } PhotoresistorStatus;
 
-extern PhotoresistorStatus photoresistorStatus;
-extern uint32_t photoresistorValue;
+struct {
+  PhotoresistorStatus status;
+  uint32_t value;
+} photoresistor;
