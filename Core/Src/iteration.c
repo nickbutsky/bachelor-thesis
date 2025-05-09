@@ -13,7 +13,7 @@ void iteration() {
     DHT11 dht11 = getDht11();
     switch (dht11.status) {
     case DHT11_OK:
-      printf("RH=%02d%% t=%dC\n", dht11.humidity, dht11.temperature);
+      printf("humidity == %02d%%\ntemperature == %dC\n", dht11.humidity, dht11.temperature);
       break;
     case DHT11_NO_CONNECTION:
       puts("NOT CONNECTED");
@@ -31,7 +31,7 @@ void iteration() {
     break;
   case PHOTORESISTOR_DONE:
     photoresistorStatus = PHOTORESISTOR_IDLE;
-    printf("LUX: %ld\n", photoresistorValue);
+    printf("photoresistorValue == %ld/4095\n", photoresistorValue);
     break;
   default:
     break;
