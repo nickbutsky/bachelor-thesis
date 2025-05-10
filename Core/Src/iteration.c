@@ -13,7 +13,7 @@ void iteration() {
     DHT11 dht11 = getDht11();
     switch (dht11.status) {
     case DHT11_OK:
-      printf("humidity == %02d%%\ntemperature == %dC\n", dht11.humidity, dht11.temperature);
+      printf("humidity == %d%%\ntemperature == %dC\n", dht11.humidity, dht11.temperature);
       break;
     case DHT11_NO_CONNECTION:
       puts("NOT CONNECTED");
