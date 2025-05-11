@@ -4,4 +4,5 @@ void setup() {
   initialiseTerminal();
   puts("APPLICATION START");
   photoresistor.status = PHOTORESISTOR_STARTING;
+  initialiseEsp8266();
 }

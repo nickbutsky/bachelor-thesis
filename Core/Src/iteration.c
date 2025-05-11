@@ -37,6 +37,8 @@ void iteration() {
     break;
   }
 
+  runEsp8266();
+
   ++counter;
   if (counter >= COUNTER_UPPER_BOUND) {
     counter = 0;
