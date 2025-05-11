@@ -41,6 +41,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern ADC_HandleTypeDef hadc1;
 /* USER CODE END EC */
