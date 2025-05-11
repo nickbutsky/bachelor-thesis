@@ -3,13 +3,9 @@
 char buffer[BUFFER_LENGTH];
 uint8_t getIndex;
 uint8_t putIndex;
-volatile char rxCharacter;
+char rxCharacter;
 
-void initialiseTerminal() {
-  putIndex = getIndex = 0;
-  buffer[0] = 0;
-  HAL_UART_Receive_IT(&huart2, (uint8_t *)&rxCharacter, 1);
-}
+void initialiseTerminal() { HAL_UART_Receive_IT(&huart2, (uint8_t *)&rxCharacter, 1); }
 
 void printEverything() {
   while (putIndex - getIndex) {
@@ -39,5 +35,5 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   }
   buffer[putIndex] = rxCharacter;
   putIndex = BUFFER_LENGTH > putIndex + 1 ? putIndex + 1 : 0;
-  HAL_UART_Receive_IT(&huart2, (uint8_t *)&rxCharacter, 1);
+  initialiseTerminal();
 }
