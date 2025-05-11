@@ -1,39 +1,28 @@
 #include "esp8266.h"
 
-enum { DATA_MAX_LENGTH = 512, SUBSTRING_LENGTH = 7 };
+enum { DATA_MAX_LENGTH = 512, SUBSTRING_LENGTH = 7, COMMAND_LENGTH = 64 };
 
-const char *ATcommandB = "<!DOCTYPE html><html>\n<head>\n\
-  <title>STM32 - ESP8266</title>\n<link href=\"data:image/x-icon;base64,\
-  A\" rel=\"icon\" type=\"image/x-icon\"><style>\nhtml {\
-  display: inline-block; margin: 0px auto; text-align: center;}\n\
-  body{margin-top: 50px;}\n.button {display: block;\n\
-  width: 70px;\nbackground-color: #008000;\nborder: none;\ncolor: white;\n\
-  padding: 14px 28px;\ntext-decoration: none;\nfont-size: 24px;\n\
-  margin: 0px auto 36px; \nborder-radius: 5px;}\n\
-  .button-on {background-color: #008000;}\n.button-on:active\
-  {background-color: #008000;}\n.button-off {background-color: #808080;}\n\
-  .button-off:active {background-color: #808080;}\n\
-  p {font-size: 14px;color: #808080;margin-bottom: 20px;}\n\
-  </style>\n</head>\n<body>\n<h1>STM32 - ESP8266</h1>";
-const char *ATcommandN = "<p>Light is currently on\
-  </p><a class=\"button button-off\" href=\"/lightoff\">OFF</a>";
-const char *ATcommandF = "<p>Light is currently off\
-  </p><a class=\"button button-on\" href=\"/lighton\">ON</a>";
-const char *ATcommandT = "</body></html>";
+const char *const htmlParts[] = {
+    "<!DOCTYPE html><html><head> <title>STM32 - ESP8266</title>\n<link href=\"data:image/x-icon;base64,A\" ",
+    "rel=\"icon\" type=\"image/x-icon\"><style>\nhtml {display: inline-block; margin: 0px auto; text-align: ",
+    "center;}body{margin-top: 50px;}\n.button {display: block;width: 70px;\nbackground-color: #008000;\nborder: ",
+    "none;\ncolor: white;padding: 14px 28px;\ntext-decoration: none;\nfont-size: 24px; margin: 0px auto 36px; ",
+    "\nborder-radius: 5px;} .button-on {background-color: #008000;}\n.button-on:active{background-color: ",
+    "#008000;}\n.button-off {background-color: #808080;}.button-off:active {background-color: #808080;}p {font-size: ",
+    "14px;color: #808080;margin-bottom: 20px;}</style>\n</head>\n<body>\n<h1>STM32 - ESP8266</h1></body></html>"};
 
 static inline void getData(char *data) {
   const uint16_t timeout = 1000;
-  HAL_UART_Receive(&huart1, data, DATA_MAX_LENGTH, timeout);
+  HAL_UART_Receive(&huart1, (uint8_t *)data, DATA_MAX_LENGTH, timeout);
 }
 
 static inline void sendData(const char *data) {
   const uint16_t timeout = 1000;
-  HAL_UART_Transmit(&huart1, data, strlen(data), timeout);
+  HAL_UART_Transmit(&huart1, (uint8_t *)data, strlen(data), timeout);
 }
 
 void initialiseEsp8266() {
   sendData("AT+RST\r\n");
-  getData(NULL);
   const uint16_t delay = 500;
   HAL_Delay(delay);
   const char *commands[] = {"AT+CWMODE_CUR=2\r\n", "AT+CWSAP_CUR=\"STM32\",\"12345678\",1,3,4,0\r\n",
@@ -70,18 +59,14 @@ void runEsp8266() {
   if (channelNumber == -1) {
     return;
   }
-  char command[64] = {0};
-  sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(ATcommandB) + strlen(ATcommandF) + strlen(ATcommandT));
-  memset(data, 0, sizeof(data));
-  sendData(command);
-  getData(data);
-  if (strstr(data, ">")) {
-    sendData(ATcommandB);
-    sendData(ATcommandF);
-    sendData(ATcommandT);
-    getData(NULL);
+  char command[COMMAND_LENGTH] = {0};
+  for (uint32_t i = 0; i < lengthof(htmlParts); ++i) {
+    (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(htmlParts[i]));
+    sendData(command);
+    HAL_Delay(1);
+    sendData(htmlParts[i]);
+    HAL_Delay(100);
   }
-  sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
+  (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
   sendData(command);
-  getData(NULL);
 }
