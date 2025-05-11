@@ -1,5 +1,7 @@
 #include "terminal.h"
 
+enum { BUFFER_LENGTH = 32 };
+
 char buffer[BUFFER_LENGTH];
 uint8_t getIndex;
 uint8_t putIndex;
