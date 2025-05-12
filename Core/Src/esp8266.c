@@ -1,13 +1,12 @@
 #include "esp8266.h"
 
-enum { GET_DATA_MAX_LENGTH = 512, SEND_DATA_MAX_LENGTH = 1024, SUBSTRING_LENGTH = 7, COMMAND_LENGTH = 64 };
+enum { GET_DATA_MAX_LENGTH = 512, SEND_DATA_MAX_LENGTH = 2048, SUBSTRING_LENGTH = 7, COMMAND_LENGTH = 64 };
 
 const char *const html =
     "<!DOCTYPE html><html><head><meta charset=\"UTF-8\" /><meta name=\"viewport\" content=\"width=device-width, "
-    "initial-scale=1.0\" /><title>Контроль мікроклімату</title><link rel=\"stylesheet\" crossorigin "
-    "href=\"/assets/index-Ce9v0aGl.css\"><style>/*! tailwindcss v4.1.6 | MIT License | https://tailwindcss.com "
-    "*/@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) "
-    "and (not (color:rgb(from red r g "
+    "initial-scale=1.0\" /><title>Контроль мікроклімату</title><style>/*! tailwindcss v4.1.6 | MIT License | "
+    "https://tailwindcss.com */@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) "
+    "or ((-moz-orient:inline) and (not (color:rgb(from red r g "
     "b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-blur:initial;--tw-"
     "brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-"
     "opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;-"
@@ -149,22 +148,28 @@ static inline void sendData(const char *data) {
   HAL_UART_Transmit(&huart1, (uint8_t *)data, strlen(data), timeout);
 }
 
-void initialiseEsp8266() {
-  sendData("AT+RST\r\n");
-  const uint16_t delay = 500;
-  HAL_Delay(delay);
-  const char *commands[] = {"AT+CWMODE_CUR=2\r\n", "AT+CWSAP_CUR=\"STM32\",\"12345678\",1,3,4,0\r\n",
-                            "AT+CIPAP_CUR=\"192.168.51.1\"\r\n", "AT+CIPMUX=1\r\n", "AT+CIPSERVER=1,80\r\n"};
-  for (uint32_t i = 0; i < lengthof(commands); ++i) {
-    while (1) {
-      char response[GET_DATA_MAX_LENGTH] = {0};
-      sendData(commands[i]);
-      getData(response);
-      if (strstr(response, "OK")) {
-        break;
-      }
-      HAL_Delay(delay);
+static inline void sendCommandUntilInData(const char *command, uint16_t delay, const char *substring) {
+  while (1) {
+    char response[GET_DATA_MAX_LENGTH] = {0};
+    sendData(command);
+    getData(response);
+    if (strstr(response, substring)) {
+      break;
     }
+    HAL_Delay(delay);
+  }
+}
+
+void initialiseEsp8266() {
+  const char *commands[] = {"AT+RST\r\n",
+                            "AT+CWMODE_CUR=2\r\n",
+                            "AT+CWSAP_CUR=\"STM32\",\"12345678\",1,3,4,0\r\n",
+                            "AT+CIPAP_CUR=\"192.168.51.1\"\r\n",
+                            "AT+CIPMUX=1\r\n",
+                            "AT+CIPSERVER=1,80\r\n"};
+  const uint16_t delay = 500;
+  for (uint32_t i = 0; i < lengthof(commands); ++i) {
+    sendCommandUntilInData(commands[i], delay, "OK");
   }
 }
 
@@ -183,7 +188,7 @@ static inline int8_t getChannelNumber(const char *data) {
 static inline void sendHtmlChunk(const char *chunk, uint8_t channelNumber) {
   char command[COMMAND_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(chunk));
-  sendData(command);
+  sendCommandUntilInData(command, 1, ">");
   HAL_Delay(1);
   sendData(chunk);
   const uint8_t delay = 100;
@@ -207,5 +212,6 @@ void runEsp8266() {
   }
   char command[COMMAND_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
-  sendData(command);
+  const uint16_t delay = 500;
+  sendCommandUntilInData(command, delay, "OK");
 }
