@@ -2,6 +2,7 @@
 
 #include "main.h"
 #include "utility.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
