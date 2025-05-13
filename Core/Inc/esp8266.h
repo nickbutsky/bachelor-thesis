@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dht11.h"
 #include "main.h"
 #include "utility.h"
 #include <ctype.h>
@@ -7,4 +8,5 @@
 #include <string.h>
 
 void initialiseEsp8266();
-void runEsp8266();
+int8_t runEsp8266();
+void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint16_t photoresistorValue);
