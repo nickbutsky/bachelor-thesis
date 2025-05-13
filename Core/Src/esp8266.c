@@ -202,13 +202,24 @@ void runEsp8266() {
   if (channelNumber == -1) {
     return;
   }
-  uint16_t htmlLength = strlen(html);
-  char htmlChunk[SEND_DATA_MAX_LENGTH + 1] = {0};
-  for (size_t i = 0; i < htmlLength; i += SEND_DATA_MAX_LENGTH) {
-    uint16_t currentChunkSize = htmlLength >= SEND_DATA_MAX_LENGTH + i ? SEND_DATA_MAX_LENGTH : htmlLength - i;
-    strncpy(htmlChunk, html + i, currentChunkSize);
-    htmlChunk[currentChunkSize] = '\0';
-    sendHtmlChunk(htmlChunk, channelNumber);
+  if (strstr(data, "/api")) {
+    char response[COMMAND_LENGTH] = {0};
+    char command[COMMAND_LENGTH] = {0};
+    (void)sprintf(response, "{\"t\":%d,\"h\":%d,\"l\":%d}", 1, 1, 1);
+    (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(response));
+    sendCommandUntilInData(command, 1, ">");
+    sendData(response);
+    const uint8_t delay = 100;
+    HAL_Delay(delay);
+  } else {
+    uint16_t htmlLength = strlen(html);
+    char htmlChunk[SEND_DATA_MAX_LENGTH + 1] = {0};
+    for (size_t i = 0; i < htmlLength; i += SEND_DATA_MAX_LENGTH) {
+      uint16_t currentChunkSize = htmlLength >= SEND_DATA_MAX_LENGTH + i ? SEND_DATA_MAX_LENGTH : htmlLength - i;
+      strncpy(htmlChunk, html + i, currentChunkSize);
+      htmlChunk[currentChunkSize] = '\0';
+      sendHtmlChunk(htmlChunk, channelNumber);
+    }
   }
   char command[COMMAND_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
