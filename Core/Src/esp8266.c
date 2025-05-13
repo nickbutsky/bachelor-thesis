@@ -228,7 +228,7 @@ int8_t runEsp8266() {
   return -1;
 }
 
-void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint16_t photoresistorValue) {
+void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint32_t photoresistorValue) {
   char response[COMMAND_LENGTH] = {0};
   char command[COMMAND_LENGTH] = {0};
   (void)sprintf(response, "{\"dht11\":{\"ok\":%d,\"t\":%d,\"h\":%d},\"l\":%d}", !dht11Ptr->status,

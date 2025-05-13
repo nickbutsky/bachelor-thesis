@@ -9,4 +9,4 @@
 
 void initialiseEsp8266();
 int8_t runEsp8266();
-void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint16_t photoresistorValue);
+void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint32_t photoresistorValue);

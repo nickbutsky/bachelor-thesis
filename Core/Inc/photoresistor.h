@@ -11,5 +11,5 @@ typedef enum {
 
 struct {
   PhotoresistorStatus status;
-  uint32_t value;
+  uint32_t lastValue;
 } photoresistor;
