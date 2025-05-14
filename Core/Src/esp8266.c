@@ -5,15 +5,11 @@ enum { DATA_MAX_LENGTH = 512, COMMAND_MAX_LENGTH = 64 };
 static inline void receive(char *data) {
   const uint16_t timeout = 1000;
   HAL_UART_Receive(&huart1, (uint8_t *)data, DATA_MAX_LENGTH, timeout);
-  puts("received");
-  puts(data);
 }
 
 static inline void send(const char *data) {
   const uint16_t timeout = 1000;
   HAL_UART_Transmit(&huart1, (uint8_t *)data, strlen(data), timeout);
-  puts("sent");
-  puts(data);
 }
 
 void initialiseEsp8266() {
@@ -33,7 +29,8 @@ void initialiseEsp8266() {
 static inline void closeChannel(uint8_t channelNumber) {
   char command[COMMAND_MAX_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
-  for (uint8_t i = 0; i < 16; ++i) {
+  const uint8_t upperBound = 16;
+  for (uint8_t i = 0; i < upperBound; ++i) {
     send(command);
     HAL_Delay(20);
   }
