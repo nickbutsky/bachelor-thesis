@@ -15,7 +15,7 @@ void iteration() {
 
   ++counter;
   if (counter >= COUNTER_UPPER_BOUND) {
-    updatePhotoresistorValue();
+    runPhotoresitorAsync();
   }
 
   HAL_Delay(1);

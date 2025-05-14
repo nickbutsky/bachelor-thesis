@@ -3,6 +3,6 @@
 void setup() {
   initialiseTerminal();
   puts("APPLICATION START");
-  updatePhotoresistorValue();
+  runPhotoresitorAsync();
   initialiseEsp8266();
 }
