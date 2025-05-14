@@ -1,7 +1,5 @@
 #include "iteration.h"
 
-enum { COUNTER_UPPER_BOUND = 50 };
-
 uint16_t counter;
 
 void iteration() {
@@ -14,8 +12,9 @@ void iteration() {
   }
 
   ++counter;
+  enum { COUNTER_UPPER_BOUND = 50 };
   if (counter >= COUNTER_UPPER_BOUND) {
-    runPhotoresitorAsync();
+    runPhotoresistorAsync();
   }
 
   HAL_Delay(1);

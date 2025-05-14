@@ -1,8 +1,9 @@
 #include "dht11.h"
 
-enum { RESET_DELAY = 500, SET_DELAY = 20, DATA_LENGTH = 42, BUFFER_LENGTH = 5, MAX_TICK_NUMBER = 50000 };
+enum { DATA_LENGTH = 42, MAX_TICK_NUMBER = 50000 };
 
 static inline uint8_t readData(uint16_t *data) {
+  enum { RESET_DELAY = 500, SET_DELAY = 20 };
   uint8_t iterator = 0;
   const uint8_t maxResponseIterator = 200;
   uint8_t upperBound = (DATA_LENGTH * 2) - 1;
@@ -61,6 +62,7 @@ DHT11 getDht11() {
     return (DHT11){DHT11_NO_CONNECTION};
   }
 
+  enum { BUFFER_LENGTH = 5 };
   uint8_t buffer[BUFFER_LENGTH] = {0};
   uint16_t maxTickNumberMinTickNumberMean = (maxTickNumber + minTickNumber) / 2;
   for (uint8_t i = 2; i < (uint8_t)DATA_LENGTH; ++i) {
