@@ -4,9 +4,9 @@ enum { GET_DATA_MAX_LENGTH = 512, SEND_DATA_MAX_LENGTH = 2048, SUBSTRING_LENGTH 
 
 const char *const html =
     "<!DOCTYPE html><html><head><meta charset=\"UTF-8\" /><meta name=\"viewport\" content=\"width=device-width, "
-    "initial-scale=1.0\" /><title>Контроль мікроклімату</title><style>/*! tailwindcss v4.1.6 | MIT License | "
-    "https://tailwindcss.com */@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) "
-    "or ((-moz-orient:inline) and (not (color:rgb(from red r g "
+    "initial-scale=1.0\" /><title>Контроль мікроклімату</title><style>@layer properties{@supports "
+    "(((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r "
+    "g "
     "b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-blur:initial;--tw-"
     "brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-"
     "opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;-"
@@ -118,25 +118,29 @@ const char *const html =
     "class=\"text-sm font-medium text-zinc-500\"> Ласкаво просимо, у Вас є доступ до <strong>3 датчиків</strong>. "
     "</h2></div><div class=\"container mx-auto p-4 lg:p-8 xl:max-w-7xl grid grid-cols-1 gap-4 sm:grid-cols-2 "
     "lg:grid-cols-12 lg:gap-8\" ><div class=\"rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50/50 "
-    "active:border-purple-200 lg:col-span-3 flex grow items-center justify-between p-5\" ><dl><dt class=\"text-2xl "
-    "font-bold\">3°C</dt><dd class=\"text-sm font-medium text-zinc-500\">Температура</dd></dl><div class=\"flex "
-    "items-center text-sm font-medium text-zinc-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" "
-    "viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" data-slot=\"icon\" class=\"hi-outline "
-    "hi-server inline-block size-12\" ><path d=\"M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z\" "
-    "></path></svg></div></div><div class=\"rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50/50 "
-    "active:border-purple-200 lg:col-span-3 flex grow items-center justify-between p-5\" ><dl><dt class=\"text-2xl "
-    "font-bold\">10%</dt><dd class=\"text-sm font-medium text-zinc-500\">Вологість</dd></dl><div class=\"flex "
-    "items-center text-sm font-medium text-zinc-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" "
-    "viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" data-slot=\"icon\" class=\"hi-outline "
-    "hi-globe-alt inline-block size-12\" ><path d=\"M12 2.69l5.66 5.66a8 8 0 1 1-11.31 "
+    "active:border-purple-200 lg:col-span-3 flex grow items-center justify-between p-5\" ><dl><dt id=\"temperature\" "
+    "class=\"text-2xl font-bold\">...</dt><dd class=\"text-sm font-medium text-zinc-500\">Температура</dd></dl><div "
+    "class=\"flex items-center text-sm font-medium text-zinc-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" "
+    "fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" data-slot=\"icon\" "
+    "class=\"hi-outline hi-server inline-block size-12\" ><path d=\"M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 "
+    "0 5 0z\" ></path></svg></div></div><div class=\"rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50/50 "
+    "active:border-purple-200 lg:col-span-3 flex grow items-center justify-between p-5\" ><dl><dt id=\"humidity\" "
+    "class=\"text-2xl font-bold\">...</dt><dd class=\"text-sm font-medium text-zinc-500\">Вологість</dd></dl><div "
+    "class=\"flex items-center text-sm font-medium text-zinc-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" "
+    "fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" data-slot=\"icon\" "
+    "class=\"hi-outline hi-globe-alt inline-block size-12\" ><path d=\"M12 2.69l5.66 5.66a8 8 0 1 1-11.31 "
     "0z\"></path></svg></div></div><div class=\"rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50/50 "
-    "active:border-purple-200 lg:col-span-3 flex grow items-center justify-between p-5\" ><dl><dt class=\"text-2xl "
-    "font-bold\">24/4095</dt><dd class=\"text-sm font-medium text-zinc-500\">Освітленість</dd></dl><div class=\"flex "
-    "items-center text-sm font-medium text-zinc-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" "
-    "viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-12\" ><path "
+    "active:border-purple-200 lg:col-span-3 flex grow items-center justify-between p-5\" ><dl><dt id=\"luminosity\" "
+    "class=\"text-2xl font-bold\">...</dt><dd class=\"text-sm font-medium text-zinc-500\">Освітленість</dd></dl><div "
+    "class=\"flex items-center text-sm font-medium text-zinc-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" "
+    "fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-12\" ><path "
     "stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 "
     "6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 "
-    "1-7.5 0 3.75 3.75 0 0 1 7.5 0Z\" /></svg></div></div></div></main></div></body></html>";
+    "1-7.5 0 3.75 3.75 0 0 1 7.5 0Z\" /></svg></div></div></div></main></div><script> async function "
+    "updateSensorData() { const { t, h, l } = await (await fetch(\"/api\")).json(); "
+    "document.getElementById(\"temperature\").nodeValue = `${t}°C`; document.getElementById(\"humidity\").nodeValue = "
+    "`${h}%`; document.getElementById(\"luminosity\").nodeValue = `${l}/4095`; } await updateSensorData(); "
+    "setInterval(updateSensorData, 30000); </script></body></html>";
 
 static inline void getData(char *data) {
   const uint16_t timeout = 1000;
@@ -231,7 +235,7 @@ int8_t runEsp8266() {
 void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint32_t photoresistorValue) {
   char response[COMMAND_LENGTH] = {0};
   char command[COMMAND_LENGTH] = {0};
-  (void)sprintf(response, "{\"dht11\":{\"ok\":%d,\"t\":%d,\"h\":%d},\"l\":%d}", !dht11Ptr->status,
+  (void)sprintf(response, "{\"dht11\":{\"ok\":%d,\"t\":%d,\"h\":%d},\"l\":%ld}", !dht11Ptr->status,
                 dht11Ptr->temperature, dht11Ptr->humidity, photoresistorValue);
   (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(response));
   sendCommandUntilInData(command, 1, ">");
