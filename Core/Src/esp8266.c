@@ -1,29 +1,24 @@
 #include "esp8266.h"
 
-enum {
-  GET_DATA_MAX_LENGTH = 512,
-  SEND_DATA_MAX_LENGTH = 2048,
-  COMMAND_MAX_LENGTH = 64,
-  HEADERS_MAX_LENGTH = 128,
-  API_RESPONSE_MAX_LENGTH = 128
-};
+enum { OUTPUT_MAX_LENGTH = 512, COMMAND_MAX_LENGTH = 64 };
 
-static inline void getData(char *data) {
+static inline void receive(char *output) {
   const uint16_t timeout = 1000;
-  HAL_UART_Receive(&huart1, (uint8_t *)data, GET_DATA_MAX_LENGTH, timeout);
+  HAL_UART_Receive(&huart1, (uint8_t *)output, OUTPUT_MAX_LENGTH, timeout);
 }
 
-static inline void sendData(const char *data) {
+static inline void send(const char *input, char *output, uint16_t delay) {
   const uint16_t timeout = 1000;
-  HAL_UART_Transmit(&huart1, (uint8_t *)data, strlen(data), timeout);
+  HAL_UART_Transmit(&huart1, (uint8_t *)input, strlen(input), timeout);
+  HAL_Delay(delay);
+  receive(output);
 }
 
-static inline void sendCommandUntilInData(const char *command, uint16_t delay, const char *substring) {
+static inline void sendUntilInOutput(const char *input, uint16_t delay, const char *substring) {
   while (1) {
-    char response[GET_DATA_MAX_LENGTH] = {0};
-    sendData(command);
-    getData(response);
-    if (strstr(response, substring)) {
+    char output[OUTPUT_MAX_LENGTH] = {0};
+    send(input, output, 0);
+    if (strstr(output, substring)) {
       break;
     }
     HAL_Delay(delay);
@@ -39,7 +34,7 @@ void initialiseEsp8266() {
                             "AT+CIPSERVER=1,80\r\n"};
   const uint16_t delay = 500;
   for (uint32_t i = 0; i < lengthof(commands); ++i) {
-    sendCommandUntilInData(commands[i], delay, "OK");
+    sendUntilInOutput(commands[i], delay, "OK");
   }
 }
 
@@ -60,45 +55,53 @@ static inline void closeChannel(uint8_t channelNumber) {
   char command[COMMAND_MAX_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
   const uint16_t delay = 500;
-  sendCommandUntilInData(command, delay, "OK");
+  sendUntilInOutput(command, delay, "OK");
+}
+
+static inline uint8_t cipsend(uint8_t channelNumber, const char *data) {
+  char command[COMMAND_MAX_LENGTH] = {0};
+  (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(data));
+  char commandResponse[OUTPUT_MAX_LENGTH] = {0};
+  send(command, commandResponse, 1);
+  if (!strstr(commandResponse, ">")) {
+    closeChannel(channelNumber);
+    return 1;
+  }
+  send(data, NULL, 100);
+  return 0;
 }
 
 static inline void sendHttpResponse(const char *contentType, uint8_t channelNumber, const char *content) {
-  char contentChunk[SEND_DATA_MAX_LENGTH + 1] = {0};
+  enum { HEADERS_MAX_LENGTH = 128 };
   char headers[HEADERS_MAX_LENGTH] = {0};
   (void)sprintf(headers, "HTTP/1.1 200 OK\ncontent-type:%s\n\n", contentType);
-  char command[COMMAND_MAX_LENGTH] = {0};
-  (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(headers));
-  char data[GET_DATA_MAX_LENGTH] = {0};
-  uint16_t contentLength = strlen(content);
-  sendData(command);
-  getData(data);
-  if (!strstr(data, ">")) {
+  enum { SEND_DATA_MAX_LENGTH = 2048 };
+  if (strlen(headers) + strlen(content) <= SEND_DATA_MAX_LENGTH) {
+    char response[SEND_DATA_MAX_LENGTH] = {0};
+    (void)sprintf(response, "%s%s", headers, content);
+    cipsend(channelNumber, response);
     closeChannel(channelNumber);
     return;
   }
-  sendData(headers);
-  for (size_t i = 0; i < contentChunk; i += SEND_DATA_MAX_LENGTH) {
+  uint32_t contentLength = strlen(content);
+  char chunk[SEND_DATA_MAX_LENGTH + 1] = {0};
+  if (cipsend(channelNumber, headers)) {
+    return;
+  }
+  for (uint32_t i = 0; i < contentLength; i += SEND_DATA_MAX_LENGTH) {
     uint16_t currentChunkSize = contentLength >= SEND_DATA_MAX_LENGTH + i ? SEND_DATA_MAX_LENGTH : contentLength - i;
-    strncpy(contentChunk, content + i, currentChunkSize);
-    contentChunk[currentChunkSize] = '\0';
-    char command[COMMAND_MAX_LENGTH] = {0};
-    (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(contentChunk));
-    char data[GET_DATA_MAX_LENGTH] = {0};
-    sendData(command);
-    getData(data);
-    if (!strstr(data, ">")) {
-      closeChannel(channelNumber);
+    strncpy(chunk, content + i, currentChunkSize);
+    chunk[currentChunkSize] = '\0';
+    if (cipsend(channelNumber, chunk)) {
       return;
     }
-    sendData(contentChunk);
   }
   closeChannel(channelNumber);
 }
 
 int8_t runEsp8266() {
-  char data[GET_DATA_MAX_LENGTH] = {0};
-  getData(data);
+  char data[OUTPUT_MAX_LENGTH] = {0};
+  receive(data);
   int8_t channelNumber = getChannelNumber(data);
   if (channelNumber == -1) {
     return -1;
@@ -115,7 +118,8 @@ int8_t runEsp8266() {
 }
 
 void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint32_t photoresistorValue) {
-  char response[COMMAND_MAX_LENGTH] = {0};
+  enum { RESPONSE_MAX_LENGTH = 128 };
+  char response[RESPONSE_MAX_LENGTH] = {0};
   (void)sprintf(response, "{\"dht11\":{\"ok\":%d,\"t\":%d,\"h\":%d},\"l\":%ld}", !dht11Ptr->status,
                 dht11Ptr->temperature, dht11Ptr->humidity, photoresistorValue);
   sendHttpResponse("application/json", channelNumber, response);
