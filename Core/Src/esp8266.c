@@ -1,6 +1,12 @@
 #include "esp8266.h"
 
-enum { GET_DATA_MAX_LENGTH = 512, SEND_DATA_MAX_LENGTH = 2048, SUBSTRING_LENGTH = 7, COMMAND_LENGTH = 64 };
+enum {
+  GET_DATA_MAX_LENGTH = 512,
+  SEND_DATA_MAX_LENGTH = 2048,
+  COMMAND_MAX_LENGTH = 64,
+  HEADERS_MAX_LENGTH = 128,
+  API_RESPONSE_MAX_LENGTH = 128
+};
 
 static inline void getData(char *data) {
   const uint16_t timeout = 1000;
@@ -38,6 +44,7 @@ void initialiseEsp8266() {
 }
 
 static inline int8_t getChannelNumber(const char *data) {
+  enum { SUBSTRING_LENGTH = 7 };
   const uint8_t channelNumber = 8;
   char substring[SUBSTRING_LENGTH] = {0};
   for (int8_t i = 0; i < channelNumber; ++i) {
@@ -50,26 +57,41 @@ static inline int8_t getChannelNumber(const char *data) {
 }
 
 static inline void closeChannel(uint8_t channelNumber) {
-  char command[COMMAND_LENGTH] = {0};
+  char command[COMMAND_MAX_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
   const uint16_t delay = 500;
   sendCommandUntilInData(command, delay, "OK");
 }
 
-static inline void handleMainPageRequest(uint8_t channelNumber) {
-  uint16_t htmlLength = strlen(html);
-  char htmlChunk[SEND_DATA_MAX_LENGTH + 1] = {0};
-  for (size_t i = 0; i < htmlLength; i += SEND_DATA_MAX_LENGTH) {
-    uint16_t currentChunkSize = htmlLength >= SEND_DATA_MAX_LENGTH + i ? SEND_DATA_MAX_LENGTH : htmlLength - i;
-    strncpy(htmlChunk, html + i, currentChunkSize);
-    htmlChunk[currentChunkSize] = '\0';
-    char command[COMMAND_LENGTH] = {0};
-    (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(htmlChunk));
-    sendCommandUntilInData(command, 1, ">");
-    HAL_Delay(1);
-    sendData(htmlChunk);
-    const uint8_t delay = 100;
-    HAL_Delay(delay);
+static inline void sendHttpResponse(const char *contentType, uint8_t channelNumber, const char *content) {
+  char contentChunk[SEND_DATA_MAX_LENGTH + 1] = {0};
+  char headers[HEADERS_MAX_LENGTH] = {0};
+  (void)sprintf(headers, "HTTP/1.1 200 OK\ncontent-type:%s\n\n", contentType);
+  char command[COMMAND_MAX_LENGTH] = {0};
+  (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(headers));
+  char data[GET_DATA_MAX_LENGTH] = {0};
+  uint16_t contentLength = strlen(content);
+  sendData(command);
+  getData(data);
+  if (!strstr(data, ">")) {
+    closeChannel(channelNumber);
+    return;
+  }
+  sendData(headers);
+  for (size_t i = 0; i < contentChunk; i += SEND_DATA_MAX_LENGTH) {
+    uint16_t currentChunkSize = contentLength >= SEND_DATA_MAX_LENGTH + i ? SEND_DATA_MAX_LENGTH : contentLength - i;
+    strncpy(contentChunk, content + i, currentChunkSize);
+    contentChunk[currentChunkSize] = '\0';
+    char command[COMMAND_MAX_LENGTH] = {0};
+    (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(contentChunk));
+    char data[GET_DATA_MAX_LENGTH] = {0};
+    sendData(command);
+    getData(data);
+    if (!strstr(data, ">")) {
+      closeChannel(channelNumber);
+      return;
+    }
+    sendData(contentChunk);
   }
   closeChannel(channelNumber);
 }
@@ -85,7 +107,7 @@ int8_t runEsp8266() {
     return channelNumber;
   }
   if (strstr(data, "GET / HTTP")) {
-    handleMainPageRequest(channelNumber);
+    sendHttpResponse("text/html", channelNumber, html);
   } else {
     closeChannel(channelNumber);
   }
@@ -93,14 +115,8 @@ int8_t runEsp8266() {
 }
 
 void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint32_t photoresistorValue) {
-  char response[COMMAND_LENGTH] = {0};
-  char command[COMMAND_LENGTH] = {0};
+  char response[COMMAND_MAX_LENGTH] = {0};
   (void)sprintf(response, "{\"dht11\":{\"ok\":%d,\"t\":%d,\"h\":%d},\"l\":%ld}", !dht11Ptr->status,
                 dht11Ptr->temperature, dht11Ptr->humidity, photoresistorValue);
-  (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(response));
-  sendCommandUntilInData(command, 1, ">");
-  sendData(response);
-  const uint8_t delay = 100;
-  HAL_Delay(delay);
-  closeChannel(channelNumber);
+  sendHttpResponse("application/json", channelNumber, response);
 }
