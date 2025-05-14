@@ -97,12 +97,14 @@
       </main>
     </div>
     <script>
-      setInterval(async () => {
+      async function updateSensorData() {
         const { t, h, l } = await (await fetch("/api")).json();
         document.getElementById("temperature").nodeValue = `${t}°C`;
         document.getElementById("humidity").nodeValue = `${h}%`;
         document.getElementById("luminosity").nodeValue = `${l}/4095`;
-      }, 30000);
+      }
+      await updateSensorData();
+      setInterval(updateSensorData, 30000);
     </script>
   </body>
 </html>
