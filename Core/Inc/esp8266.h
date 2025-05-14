@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dht11.h"
+#include "html.h"
 #include "main.h"
 #include "utility.h"
 #include <ctype.h>

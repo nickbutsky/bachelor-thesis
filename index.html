@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Контроль мікроклімату</title>
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgo=" />
     <link href="globals.css" rel="stylesheet" />
   </head>
   <body>
@@ -103,8 +104,12 @@
         document.getElementById("humidity").nodeValue = `${h}%`;
         document.getElementById("luminosity").nodeValue = `${l}/4095`;
       }
-      await updateSensorData();
-      setInterval(updateSensorData, 30000);
+      document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(async () => {
+          await updateSensorData();
+          setInterval(updateSensorData, 30000);
+        }, 3000);
+      });
     </script>
   </body>
 </html>
