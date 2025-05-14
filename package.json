@@ -4,8 +4,6 @@
 	"version": "0.0.0",
 	"type": "module",
 	"devDependencies": {
-		"@tailwindcss/vite": "^4",
-		"tailwindcss": "^4",
 		"vite": "^6"
 	}
 }
