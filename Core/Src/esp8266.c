@@ -217,10 +217,10 @@ int8_t runEsp8266() {
   if (channelNumber == -1) {
     return -1;
   }
-  if (strstr(data, "GET /api HTTP/1.1")) {
+  if (strstr(data, "GET /api HTTP")) {
     return channelNumber;
   }
-  if (strstr(data, "GET / HTTP/1.1")) {
+  if (strstr(data, "GET / HTTP")) {
     handleMainPageRequest(channelNumber);
   } else {
     closeChannel(channelNumber);
