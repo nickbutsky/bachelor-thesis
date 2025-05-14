@@ -30,9 +30,10 @@ static inline void closeChannel(uint8_t channelNumber) {
   char command[COMMAND_MAX_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
   const uint8_t upperBound = 16;
+  const uint8_t delay = 20;
   for (uint8_t i = 0; i < upperBound; ++i) {
     send(command);
-    HAL_Delay(20);
+    HAL_Delay(delay);
   }
 }
 
@@ -42,8 +43,12 @@ static inline void sendHttpResponse(const char *contentType, uint8_t channelNumb
   (void)sprintf(response, "HTTP/1.1 200 OK\ncontent-type:%s\n\n%s", contentType, content);
   char command[COMMAND_MAX_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(response));
+  const uint8_t smallerDelay = 20;
+  const uint16_t biggerDelay = 500;
   send(command);
+  HAL_Delay(smallerDelay);
   send(response);
+  HAL_Delay(biggerDelay);
   closeChannel(channelNumber);
 }
 
