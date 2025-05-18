@@ -54,9 +54,9 @@ static inline void sendHttpResponse(const char *contentType, uint8_t channelNumb
 
 static inline int8_t getChannelNumber(const char *data) {
   enum { SUBSTRING_LENGTH = 7 };
-  const uint8_t channelNumber = 8;
+  const uint8_t maxChannelNumber = 8;
   char substring[SUBSTRING_LENGTH] = {0};
-  for (int8_t i = 0; i < channelNumber; ++i) {
+  for (int8_t i = 0; i < maxChannelNumber; ++i) {
     (void)sprintf(substring, "+IPD,%d", i);
     if (strstr(data, substring)) {
       return i;
