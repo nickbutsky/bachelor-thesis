@@ -15,7 +15,7 @@ static inline void send(const char *data) {
 void initialiseEsp8266() {
   const char *commands[] = {"AT+RST\r\n",
                             "AT+CWMODE_CUR=2\r\n",
-                            "AT+CWSAP_CUR=\"MICROCLIMATE CONTROL\",\"12345678\",1,3,4,0\r\n",
+                            "AT+CWSAP_CUR=\"MICROCLIMATE_CONTROL\",\"12345678\",1,3,4\r\n",
                             "AT+CIPAP_CUR=\"192.168.51.1\"\r\n",
                             "AT+CIPMUX=1\r\n",
                             "AT+CIPSERVER=1,80\r\n"};
