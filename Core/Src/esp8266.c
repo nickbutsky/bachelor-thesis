@@ -26,9 +26,9 @@ void initialiseEsp8266() {
   }
 }
 
-static inline void closeChannel(uint8_t channelNumber) {
+static inline void closeConnection(uint8_t linkId) {
   char command[COMMAND_MAX_LENGTH] = {0};
-  (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", channelNumber);
+  (void)sprintf(command, "AT+CIPCLOSE=%d\r\n", linkId);
   const uint8_t upperBound = 16;
   const uint8_t delay = 20;
   for (uint8_t i = 0; i < upperBound; ++i) {
@@ -37,22 +37,22 @@ static inline void closeChannel(uint8_t channelNumber) {
   }
 }
 
-static inline void sendHttpResponse(const char *contentType, uint8_t channelNumber, const char *content) {
+static inline void sendHttpResponse(const char *contentType, uint8_t linkId, const char *content) {
   enum { RESPONSE_MAX_LENGTH = 2048 };
   char response[RESPONSE_MAX_LENGTH] = {0};
   (void)sprintf(response, "HTTP/1.1 200 OK\ncontent-type:%s\n\n%s", contentType, content);
   char command[COMMAND_MAX_LENGTH] = {0};
-  (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", channelNumber, strlen(response));
+  (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", linkId, strlen(response));
   const uint8_t smallerDelay = 20;
   const uint16_t biggerDelay = 500;
   send(command);
   HAL_Delay(smallerDelay);
   send(response);
   HAL_Delay(biggerDelay);
-  closeChannel(channelNumber);
+  closeConnection(linkId);
 }
 
-static inline int8_t getChannelNumber(const char *data) {
+static inline int8_t getLinkId(const char *data) {
   enum { SUBSTRING_LENGTH = 7 };
   const uint8_t maxChannelNumber = 8;
   char substring[SUBSTRING_LENGTH] = {0};
@@ -68,17 +68,17 @@ static inline int8_t getChannelNumber(const char *data) {
 int8_t runEsp8266() {
   char data[DATA_MAX_LENGTH] = {0};
   receive(data);
-  int8_t channelNumber = getChannelNumber(data);
-  if (channelNumber == -1) {
+  int8_t linkId = getLinkId(data);
+  if (linkId == -1) {
     return -1;
   }
   if (strstr(data, "GET /api HTTP")) {
-    return channelNumber;
+    return linkId;
   }
   if (strstr(data, "GET / HTTP")) {
-    sendHttpResponse("text/html", channelNumber, html);
+    sendHttpResponse("text/html", linkId, html);
   } else {
-    closeChannel(channelNumber);
+    closeConnection(linkId);
   }
   return -1;
 }

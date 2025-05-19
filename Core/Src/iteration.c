@@ -5,10 +5,10 @@ uint16_t counter;
 void iteration() {
   printEverything();
 
-  int8_t channelNumber = runEsp8266();
-  if (channelNumber != -1) {
+  int8_t linkId = runEsp8266();
+  if (linkId != -1) {
     DHT11 dht11 = getDht11();
-    handleApiRequest(channelNumber, &dht11, getLastPhotoresistorValue());
+    handleApiRequest(linkId, &dht11, getLastPhotoresistorValue());
   }
 
   ++counter;
