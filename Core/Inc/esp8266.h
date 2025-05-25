@@ -8,7 +8,7 @@
 #include <string.h>
 
 typedef struct {
-  int8_t linkId;
+  uint32_t linkId;
   const char *contentType;
 } Esp8266;
 
