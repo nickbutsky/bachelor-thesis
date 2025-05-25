@@ -1,3 +1,3 @@
 #pragma once
 
-extern const char *const html;
+extern const char *const htmlTemplate;

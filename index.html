@@ -6,79 +6,74 @@
     <title>Контроль мікроклімату</title>
     <link rel="icon" href="data:image/png;base64,iVBORw0KGgo=" />
     <style>
-      .wrapper {
-        margin-top: 10vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-      }
-      .datalist-container {
-        width: 300px;
-      }
-      .datalist-item {
+      .item {
         display: flex;
         justify-content: space-between;
         padding: 8px 0;
         border-bottom: 1px solid #eee;
       }
-      .label {
-        font-weight: bold;
-      }
-      .countdown {
-        text-align: center;
-        margin-top: 12px;
+      .value {
+        display: flex;
       }
     </style>
   </head>
   <body>
-    <div class="wrapper">
-      <div class="datalist-container">
-        <div class="datalist-item">
-          <span class="label">Температура</span>
-          <span id="t" class="value">...</span>
+    <div style="margin-top: 10vh; display: flex; justify-content: center; align-items: center; width: 100%%">
+      <div style="width: 300px">
+        <div class="item">
+          <strong>Температура</strong>
+          <div class="value">
+            <div id="t">%d</div>
+            °C
+          </div>
         </div>
-        <div class="datalist-item">
-          <span class="label">Вологість</span>
-          <span id="h" class="value">...</span>
+        <div class="item">
+          <strong>Вологість</strong>
+          <div class="value">
+            <div id="h">%d</div>
+            %%
+          </div>
         </div>
-        <div class="datalist-item">
-          <span class="label">Освітленість</span>
-          <span id="l" class="value">...</span>
+        <div class="item">
+          <strong>Освітленість</strong>
+          <div class="value">
+            <div id="l"></div>
+            lx
+          </div>
         </div>
-        <div id="countdown" class="countdown">Секунд до оновлення: 10</div>
+        <div id="ct" style="text-align: center; margin-top: 12px"></div>
       </div>
     </div>
     <script>
+      const lElement = document.getElementById("l");
+      lElement.innerHTML = getLuxNumber(%lu).toString();
       let secondsLeft = 10;
-      let interval = null;
-      async function updateSensorData() {
+      function getLuxNumber(luminosity) {
+        return luminosity;
+      }
+      async function update() {
         const {
           th: { t, h },
           l,
         } = await (await fetch("/api")).json();
-        document.getElementById("t").innerHTML = `${t}°C`;
-        document.getElementById("h").innerHTML = `${h}%`;
-        document.getElementById("l").innerHTML = `${l}/4095`;
+        document.getElementById("t").innerHTML = t.toString();
+        document.getElementById("h").innerHTML = h.toString();
+        lElement.innerHTML = getLuxNumber(l).toString();
       }
       async function handleTimer() {
         secondsLeft--;
-        const timerElement = document.getElementById("countdown");
-        timerElement.innerHTML = `Секунд до оновлення: ${secondsLeft}`;
+        const element = document.getElementById("ct");
+        element.innerHTML = `Оновлення через: ${secondsLeft}`;
         if (secondsLeft <= 0) {
           clearInterval(interval);
-          timerElement.innerHTML = `Оновлення...`;
-          await updateSensorData();
+          element.innerHTML = `Оновлення...`;
+          await update();
           secondsLeft = 10;
+          element.innerHTML = `Оновлення через: ${secondsLeft}`;
           interval = setInterval(handleTimer, 1000);
         }
       }
-      document.addEventListener("DOMContentLoaded", () => {
-        setTimeout(async () => {
-          await updateSensorData();
-          interval = setInterval(handleTimer, 1000);
-        }, 1000);
-      });
+      let interval = setInterval(handleTimer, 1000);
     </script>
   </body>
 </html>

@@ -7,6 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 
+typedef struct {
+  int8_t linkId;
+  const char *contentType;
+} Esp8266;
+
 void initialiseEsp8266();
-int8_t runEsp8266();
-void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint32_t photoresistorValue);
+Esp8266 runEsp8266();
+void handleRequest(const Esp8266 *esp8266Ptr, const DHT11 *dht11Ptr, uint32_t photoresistorValue);

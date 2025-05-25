@@ -37,19 +37,19 @@ static inline void closeConnection(uint8_t linkId) {
   }
 }
 
-static inline void sendHttpResponse(const char *contentType, uint8_t linkId, const char *content) {
+static inline void sendHttpResponse(const Esp8266 *esp8266Ptr, const char *content) {
   enum { RESPONSE_MAX_LENGTH = 2048 };
   char response[RESPONSE_MAX_LENGTH] = {0};
-  (void)sprintf(response, "HTTP/1.1 200 OK\ncontent-type:%s\n\n%s", contentType, content);
+  (void)sprintf(response, "HTTP/1.1 200 OK\ncontent-type:%s\n\n%s", esp8266Ptr->contentType, content);
   char command[COMMAND_MAX_LENGTH] = {0};
-  (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", linkId, strlen(response));
+  (void)sprintf(command, "AT+CIPSEND=%d,%d\r\n", esp8266Ptr->linkId, strlen(response));
   const uint8_t smallerDelay = 20;
   const uint16_t biggerDelay = 500;
   send(command);
   HAL_Delay(smallerDelay);
   send(response);
   HAL_Delay(biggerDelay);
-  closeConnection(linkId);
+  closeConnection(esp8266Ptr->linkId);
 }
 
 static inline int8_t getLinkId(const char *data) {
@@ -65,28 +65,31 @@ static inline int8_t getLinkId(const char *data) {
   return -1;
 }
 
-int8_t runEsp8266() {
+Esp8266 runEsp8266() {
   char data[DATA_MAX_LENGTH] = {0};
   receive(data);
   int8_t linkId = getLinkId(data);
   if (linkId == -1) {
-    return -1;
+    return (Esp8266){-1};
   }
   if (strstr(data, "GET /api HTTP")) {
-    return linkId;
+    return (Esp8266){linkId, "application/json"};
   }
   if (strstr(data, "GET / HTTP")) {
-    sendHttpResponse("text/html", linkId, html);
-  } else {
-    closeConnection(linkId);
+    return (Esp8266){linkId, "text/html"};
   }
-  return -1;
+  closeConnection(linkId);
+  return (Esp8266){-1};
 }
 
-void handleApiRequest(uint8_t channelNumber, const DHT11 *dht11Ptr, uint32_t photoresistorValue) {
-  enum { RESPONSE_MAX_LENGTH = 128 };
-  char response[RESPONSE_MAX_LENGTH] = {0};
-  (void)sprintf(response, "{\"th\":{\"ok\":%d,\"t\":%d,\"h\":%d},\"l\":%ld}", !dht11Ptr->status, dht11Ptr->temperature,
-                dht11Ptr->humidity, photoresistorValue);
-  sendHttpResponse("application/json", channelNumber, response);
+void handleRequest(const Esp8266 *esp8266Ptr, const DHT11 *dht11Ptr, uint32_t photoresistorValue) {
+  enum { CONTENT_MAX_LENGTH = 2048 };
+  char content[CONTENT_MAX_LENGTH] = {0};
+  if (!strcmp(esp8266Ptr->contentType, "application/json")) {
+    (void)sprintf(content, "{\"th\":{\"ok\":%d,\"t\":%d,\"h\":%d},\"l\":%ld}", !dht11Ptr->status, dht11Ptr->temperature,
+                  dht11Ptr->humidity, photoresistorValue);
+  } else if (!strcmp(esp8266Ptr->contentType, "text/html")) {
+    (void)sprintf(content, htmlTemplate, dht11Ptr->temperature, dht11Ptr->humidity, photoresistorValue);
+  }
+  sendHttpResponse(esp8266Ptr, content);
 }
