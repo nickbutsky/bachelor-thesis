@@ -54,9 +54,9 @@ static inline void sendHttpResponse(const Esp8266 *esp8266Ptr, const char *conte
 
 static inline int8_t getLinkId(const char *data) {
   enum { SUBSTRING_LENGTH = 7 };
-  const uint8_t maxChannelNumber = 8;
+  const uint8_t upperBound = 4;
   char substring[SUBSTRING_LENGTH] = {0};
-  for (int8_t i = 0; i < maxChannelNumber; ++i) {
+  for (int8_t i = 0; i < upperBound; ++i) {
     (void)sprintf(substring, "+IPD,%d", i);
     if (strstr(data, substring)) {
       return i;
