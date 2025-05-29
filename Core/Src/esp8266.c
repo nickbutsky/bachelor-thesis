@@ -1,4 +1,9 @@
 #include "esp8266.h"
+#include "dht11.h"
+#include "html.h"
+#include "utility.h"
+#include <stdio.h>
+#include <string.h>
 
 enum { DATA_MAX_LENGTH = 512, COMMAND_MAX_LENGTH = 64 };
 

@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "main.h"
 
 enum { BUFFER_LENGTH = 32 };
 
