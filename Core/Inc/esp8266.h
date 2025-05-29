@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dht11.h"
 #include "main.h"
 
 typedef struct {

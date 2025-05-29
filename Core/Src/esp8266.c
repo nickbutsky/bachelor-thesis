@@ -1,5 +1,4 @@
 #include "esp8266.h"
-#include "dht11.h"
 #include "html.h"
 #include "utility.h"
 #include <stdio.h>

@@ -83,7 +83,6 @@ DHT11 getDht11() {
   }
   if (checkSum != buffer[BUFFER_LENGTH - 1]) {
     return (DHT11){DHT11_CHECKSUM_ERROR};
-    ;
   }
 
   return (DHT11){DHT11_OK, (int8_t)buffer[2], buffer[0]};
