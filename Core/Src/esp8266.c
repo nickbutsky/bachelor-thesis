@@ -66,6 +66,7 @@ Esp8266 runEsp8266() {
   if (strstr(data, "GET / HTTP")) {
     return (Esp8266){linkId, "text/html"};
   }
+  closeConnection(linkId);
   return (Esp8266){-1};
 }
 
