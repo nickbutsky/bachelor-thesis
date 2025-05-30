@@ -64,9 +64,9 @@
             th: { ok, t, h },
             l,
           } = await (await fetch("/api", { signal: AbortSignal.timeout(2000) })).json();
-          tEl.innerHTML = ok ? t.toString() : errMsg;
-          hEl.innerHTML = ok ? h.toString() : errMsg;
-          lEl.innerHTML = toLux(l).toString();
+          tEl.innerHTML = ok ? `${t}` : errMsg;
+          hEl.innerHTML = ok ? `${h}` : errMsg;
+          lEl.innerHTML = `${toLux(l)}`;
         } catch {
           await update();
         }
