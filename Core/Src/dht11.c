@@ -45,7 +45,7 @@ DHT11 getDht11() {
   for (uint32_t i = 0; i < DATA_LENGTH; ++i) {
     const uint8_t eight = 8;
     uint8_t bufferIndex = i / eight;
-    buffer[bufferIndex] << 1;
+    buffer[bufferIndex] <<= (uint8_t)1;
     if (data[i] > extremeTickNumberMean) {
       buffer[bufferIndex] |= (uint8_t)1;
     }
