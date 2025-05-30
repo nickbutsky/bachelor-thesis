@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Контроль мікроклімату</title>
+    <title>КМ</title>
     <link rel="icon" href="data:image/png;base64,iVBORw0KGgo=" />
     <style>
-      .item {
+      .i {
         display: flex;
         justify-content: space-between;
         padding: 8px 0;
         border-bottom: 1px solid #eee;
       }
-      .value {
+      .v {
         display: flex;
       }
     </style>
@@ -20,60 +20,70 @@
   <body>
     <div style="margin-top: 10vh; display: flex; justify-content: center; align-items: center; width: 100%%">
       <div style="width: 300px">
-        <div class="item">
+        <div class="i">
           <strong>Температура</strong>
-          <div class="value">
-            <div id="t">%d</div>
+          <div class="v">
+            <div id="t"></div>
             °C
           </div>
         </div>
-        <div class="item">
+        <div class="i">
           <strong>Вологість</strong>
-          <div class="value">
-            <div id="h">%d</div>
+          <div class="v">
+            <div id="h"></div>
             %%
           </div>
         </div>
-        <div class="item">
+        <div class="i">
           <strong>Освітленість</strong>
-          <div class="value">
+          <div class="v">
             <div id="l"></div>
             lx
           </div>
         </div>
-        <div id="ct" style="text-align: center; margin-top: 12px"></div>
+        <div id="st" style="text-align: center; margin-top: 12px"></div>
       </div>
     </div>
     <script>
-      const lElement = document.getElementById("l");
-      lElement.innerHTML = getLuxNumber(%lu).toString();
-      let secondsLeft = 10;
-      function getLuxNumber(luminosity) {
-        return luminosity;
+      // let thOk = %d;
+      let $ = document.getElementById.bind(document);
+      let tEl = $("t");
+      let hEl = $("h");
+      let lEl = $("l");
+      let errMsg = "ПОМИЛКА";
+      // tEl.innerHTML = thOk ? `${%d}` : errMsg;
+      // hEl.innerHTML = thOk ? `${%d}` : errMsg;
+      // lEl.innerHTML = `${toLux(%lu)}`;
+      let s = 10;
+      function toLux(l) {
+        return l;
       }
       async function update() {
-        const {
-          th: { t, h },
-          l,
-        } = await (await fetch("/api")).json();
-        document.getElementById("t").innerHTML = t.toString();
-        document.getElementById("h").innerHTML = h.toString();
-        lElement.innerHTML = getLuxNumber(l).toString();
-      }
-      async function handleTimer() {
-        secondsLeft--;
-        const element = document.getElementById("ct");
-        element.innerHTML = `Оновлення через: ${secondsLeft}`;
-        if (secondsLeft <= 0) {
-          clearInterval(interval);
-          element.innerHTML = `Оновлення...`;
+        try {
+          let {
+            th: { ok, t, h },
+            l,
+          } = await (await fetch("/api", { signal: AbortSignal.timeout(2000) })).json();
+          tEl.innerHTML = ok ? t.toString() : errMsg;
+          hEl.innerHTML = ok ? h.toString() : errMsg;
+          lEl.innerHTML = toLux(l).toString();
+        } catch {
           await update();
-          secondsLeft = 10;
-          element.innerHTML = `Оновлення через: ${secondsLeft}`;
-          interval = setInterval(handleTimer, 1000);
         }
       }
-      let interval = setInterval(handleTimer, 1000);
+      let intrvl = setInterval(async function handle() {
+        s--;
+        let el = $("st");
+        el.innerHTML = `Оновлення через: ${s}`;
+        if (s <= 0) {
+          clearInterval(intrvl);
+          el.innerHTML = `Оновлення...`;
+          await update();
+          s = 10;
+          el.innerHTML = `Оновлення через: ${s}`;
+          intrvl = setInterval(handle, 1000);
+        }
+      }, 1000);
     </script>
   </body>
 </html>
