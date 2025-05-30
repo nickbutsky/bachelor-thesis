@@ -1,13 +1,11 @@
 #include "dht11.h"
 
 DHT11 getDht11() {
-  const uint16_t resetDelay = 500;
   const uint8_t setDelay = 20;
   uint16_t tickNumber = 0;
   enum { DATA_LENGTH = 40 };
   const uint16_t maxTickNumber = 1000;
   uint16_t data[DATA_LENGTH] = {0};
-  HAL_Delay(resetDelay);
   HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_RESET);
   HAL_Delay(setDelay);
   HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_SET);
