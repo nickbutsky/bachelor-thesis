@@ -6,8 +6,6 @@
 
 enum { DATA_MAX_LENGTH = 512, COMMAND_MAX_LENGTH = 64 };
 
-uint8_t linkIdToConnected[] = {0, 0, 0, 0};
-
 static inline void receive(char *data) {
   const uint16_t timeout = 1000;
   HAL_UART_Receive(&huart1, (uint8_t *)data, DATA_MAX_LENGTH, timeout);
@@ -35,29 +33,23 @@ void initialiseEsp8266() {
 static inline uint32_t getLinkId(const char *data) {
   enum { SUBSTRING_LENGTH = 7 };
   char substring[SUBSTRING_LENGTH] = {0};
-  for (uint32_t i = 0; i < lengthof(linkIdToConnected); ++i) {
+  for (uint32_t i = 0; i < 4; ++i) {
     (void)sprintf(substring, "+IPD,%lu", i);
     if (strstr(data, substring)) {
-      linkIdToConnected[i] = 1;
       return i;
     }
   }
   return -1;
 }
 
-static inline void closeConnections() {
-  for (uint32_t linkId = 0; linkId < lengthof(linkIdToConnected); ++linkId) {
-    if (linkIdToConnected[linkId]) {
-      continue;
-    }
-    char command[COMMAND_MAX_LENGTH] = {0};
-    (void)sprintf(command, "AT+CIPCLOSE=%lu\r\n", linkId);
-    const uint8_t upperBound = 8;
-    const uint8_t delay = 20;
-    for (uint8_t i = 0; i < upperBound; ++i) {
-      send(command);
-      HAL_Delay(delay);
-    }
+static inline void closeConnection(uint32_t linkId) {
+  char command[COMMAND_MAX_LENGTH] = {0};
+  (void)sprintf(command, "AT+CIPCLOSE=%lu\r\n", linkId);
+  const uint8_t upperBound = 8;
+  const uint8_t delay = 20;
+  for (uint8_t i = 0; i < upperBound; ++i) {
+    send(command);
+    HAL_Delay(delay);
   }
 }
 
@@ -66,7 +58,6 @@ Esp8266 runEsp8266() {
   receive(data);
   uint32_t linkId = getLinkId(data);
   if (linkId == -1) {
-    closeConnections();
     return (Esp8266){-1};
   }
   if (strstr(data, "GET /api HTTP")) {
@@ -75,7 +66,6 @@ Esp8266 runEsp8266() {
   if (strstr(data, "GET / HTTP")) {
     return (Esp8266){linkId, "text/html"};
   }
-  closeConnections();
   return (Esp8266){-1};
 }
 
@@ -85,13 +75,11 @@ static inline void sendHttpResponse(const Esp8266 *esp8266Ptr, const char *conte
   (void)sprintf(response, "HTTP/1.1 200 OK\ncontent-type:%s\n\n%s", esp8266Ptr->contentType, content);
   char command[COMMAND_MAX_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPSEND=%lu,%d\r\n", esp8266Ptr->linkId, strlen(response));
-  const uint8_t smallerDelay = 20;
-  const uint16_t biggerDelay = 500;
+  const uint8_t delay = 20;
   send(command);
-  HAL_Delay(smallerDelay);
+  HAL_Delay(delay);
   send(response);
-  HAL_Delay(biggerDelay);
-  linkIdToConnected[esp8266Ptr->linkId] = 0;
+  closeConnection(esp8266Ptr->linkId);
 }
 
 void handleRequest(const Esp8266 *esp8266Ptr, const DHT11 *dht11Ptr, uint32_t photoresistorValue) {
@@ -102,6 +90,9 @@ void handleRequest(const Esp8266 *esp8266Ptr, const DHT11 *dht11Ptr, uint32_t ph
                   dht11Ptr->humidity, photoresistorValue);
   } else if (!strcmp(esp8266Ptr->contentType, "text/html")) {
     (void)sprintf(content, htmlTemplate, dht11Ptr->temperature, dht11Ptr->humidity, photoresistorValue);
+  } else {
+    closeConnection(esp8266Ptr->linkId);
+    return;
   }
   sendHttpResponse(esp8266Ptr, content);
 }
