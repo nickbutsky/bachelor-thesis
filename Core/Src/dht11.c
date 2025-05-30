@@ -3,12 +3,13 @@
 enum { DATA_LENGTH = 40, MAX_TICK_NUMBER = 1000 };
 
 static inline uint8_t readData(uint16_t *data) {
-  enum { RESET_DELAY = 500, SET_DELAY = 20 };
+  const uint16_t resetDelay = 500;
+  const uint8_t setDelay = 20;
   uint16_t tickNumber = 0;
   const uint8_t five = 5;
-  HAL_Delay(RESET_DELAY);
+  HAL_Delay(resetDelay);
   HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_RESET);
-  HAL_Delay(SET_DELAY);
+  HAL_Delay(setDelay);
   HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_SET);
   for (uint32_t i = 0; i < (DATA_LENGTH * 2) + 4; ++i) {
     tickNumber = 0;
