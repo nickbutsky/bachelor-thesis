@@ -11,10 +11,10 @@ const char *const htmlTemplate =
     "id=\"l\"></div> lx </div></div><div id=\"st\" style=\"text-align: center; margin-top: "
     "12px\"></div></div></div><script> let thOk = %d; let $ = document.getElementById.bind(document); let tEl = "
     "$(\"t\"); let hEl = $(\"h\"); let lEl = $(\"l\"); let errMsg = \"ПОМИЛКА\"; tEl.innerHTML = thOk ? `${%d}` : "
-    "errMsg; hEl.innerHTML = thOk ? `${%d}` : errMsg; lEl.innerHTML = `${toLux(%lu)}`; let s = 10; function toLux(l) { "
+    "errMsg; hEl.innerHTML = thOk ? `${%d}` : errMsg; lEl.innerHTML = `${toLx(%lu)}`; let s = 10; function toLx(l) { "
     "return l; } async function update() { try { let { th: { ok, t, h }, l, } = await (await fetch(\"/api\", { signal: "
     "AbortSignal.timeout(2000) })).json(); tEl.innerHTML = ok ? `${t}` : errMsg; hEl.innerHTML = ok ? `${h}` : errMsg; "
-    "lEl.innerHTML = `${toLux(l)}`; } catch { await update(); } } let intrvl = setInterval(async function handle() { "
+    "lEl.innerHTML = `${toLx(l)}`; } catch { await update(); } } let intrvl = setInterval(async function handle() { "
     "s--; let el = $(\"st\"); el.innerHTML = `Оновлення через: ${s}`; if (s <= 0) { clearInterval(intrvl); "
     "el.innerHTML = `Оновлення...`; await update(); s = 10; el.innerHTML = `Оновлення через: ${s}`; intrvl = "
     "setInterval(handle, 1000); } }, 1000); </script></body></html>";

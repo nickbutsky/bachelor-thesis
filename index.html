@@ -53,9 +53,9 @@
       let errMsg = "ПОМИЛКА";
       // tEl.innerHTML = thOk ? `${%d}` : errMsg;
       // hEl.innerHTML = thOk ? `${%d}` : errMsg;
-      // lEl.innerHTML = `${toLux(%lu)}`;
+      // lEl.innerHTML = `${toLx(%lu)}`;
       let s = 10;
-      function toLux(l) {
+      function toLx(l) {
         return l;
       }
       async function update() {
@@ -66,7 +66,7 @@
           } = await (await fetch("/api", { signal: AbortSignal.timeout(2000) })).json();
           tEl.innerHTML = ok ? `${t}` : errMsg;
           hEl.innerHTML = ok ? `${h}` : errMsg;
-          lEl.innerHTML = `${toLux(l)}`;
+          lEl.innerHTML = `${toLx(l)}`;
         } catch {
           await update();
         }
