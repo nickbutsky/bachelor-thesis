@@ -81,8 +81,8 @@ static inline void sendHttpResponse(const Esp8266 *esp8266Ptr, const char *body)
 }
 
 void handleRequest(const Esp8266 *esp8266Ptr, const DHT11 *dht11Ptr, uint32_t photoresistorValue) {
-  enum { CONTENT_MAX_LENGTH = 2048 };
-  char body[CONTENT_MAX_LENGTH] = {0};
+  enum { BODY_MAX_LENGTH = 2048 };
+  char body[BODY_MAX_LENGTH] = {0};
   const char *template = NULL;
   if (!strcmp(esp8266Ptr->contentType, "application/json")) {
     template = "{\"th\":{\"ok\":%d,\"t\":%d,\"h\":%d},\"l\":%ld}";
