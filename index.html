@@ -39,15 +39,16 @@
       </div>
     </div>
     <script>
-      // let thOk = %d;
+      let N = Number;
+      let thOk = N("%d");
       let $ = document.getElementById.bind(document);
       let tEl = $("t");
       let hEl = $("h");
       let lEl = $("l");
       let errMsg = "ПОМИЛКА";
-      // tEl.innerHTML = thOk ? `${%d}°C` : errMsg;
-      // hEl.innerHTML = thOk ? `${%d}%%` : errMsg;
-      // lEl.innerHTML = `${toLx(%lu)}`;
+      tEl.innerHTML = thOk ? `${N("%d")}°C` : errMsg;
+      hEl.innerHTML = thOk ? `${N("%d")}%%` : errMsg;
+      lEl.innerHTML = `${toLx(N("%lu"))}`;
       let s = 5;
       function toLx(l) {
         return l;
