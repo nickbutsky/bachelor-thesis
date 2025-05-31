@@ -7,30 +7,29 @@
     <link rel="icon" href="data:image/png;base64,iVBORw0KGgo=" />
     <style>
       .i {
-        display: flex;
         justify-content: space-between;
         padding: 8px 0;
         border-bottom: 1px solid #eee;
       }
-      .v {
+      .f {
         display: flex;
       }
     </style>
   </head>
   <body>
-    <div style="margin-top: 10vh; display: flex; justify-content: center; align-items: center; width: 100%%">
+    <div class="f" style="margin-top: 10vh; justify-content: center">
       <div style="width: 300px">
-        <div class="i">
+        <div class="i f">
           <strong>Температура</strong>
-          <div id="t" class="v"></div>
+          <div id="t" class="f"></div>
         </div>
-        <div class="i">
+        <div class="i f">
           <strong>Вологість</strong>
-          <div id="h" class="v"></div>
+          <div id="h" class="f"></div>
         </div>
-        <div class="i">
+        <div class="i f">
           <strong>Освітленість</strong>
-          <div class="v">
+          <div class="f">
             <div id="l"></div>
             lx
           </div>
