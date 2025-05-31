@@ -1,3 +1,5 @@
+#pragma once
+
 const char *const htmlTemplate =
     "<!DOCTYPE html><html><head><meta charset=\"UTF-8\" /><meta name=\"viewport\" content=\"width=device-width, "
     "initial-scale=1.0\" /><title>КМ</title><link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgo=\" /><style> "
