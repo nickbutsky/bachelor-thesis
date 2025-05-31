@@ -43,14 +43,11 @@ static inline uint32_t getLinkId(const char *data) {
 }
 
 static inline void closeConnection(uint32_t linkId) {
+  const uint8_t delay = 150;
   char command[COMMAND_MAX_LENGTH] = {0};
   (void)sprintf(command, "AT+CIPCLOSE=%lu\r\n", linkId);
-  const uint8_t upperBound = 8;
-  const uint8_t delay = 20;
-  for (uint8_t i = 0; i < upperBound; ++i) {
-    send(command);
-    HAL_Delay(delay);
-  }
+  HAL_Delay(delay);
+  send(command);
 }
 
 Esp8266 runEsp8266() {
