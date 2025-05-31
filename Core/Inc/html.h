@@ -1,3 +1,18 @@
-#pragma once
-
-extern const char *const htmlTemplate;
+const char *const htmlTemplate =
+    "<!DOCTYPE html><html><head><meta charset=\"UTF-8\" /><meta name=\"viewport\" content=\"width=device-width, "
+    "initial-scale=1.0\" /><title>КМ</title><link rel=\"icon\" href=\"data:image/png;base64,iVBORw0KGgo=\" /><style> "
+    ".i { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; } .v { "
+    "display: flex; } </style></head><body><div style=\"margin-top: 10vh; display: flex; justify-content: center; "
+    "align-items: center; width: 100%%\"><div style=\"width: 300px\"><div class=\"i\"><strong>Температура</strong><div "
+    "id=\"t\" class=\"v\"></div></div><div class=\"i\"><strong>Вологість</strong><div id=\"h\" "
+    "class=\"v\"></div></div><div class=\"i\"><strong>Освітленість</strong><div class=\"v\"><div id=\"l\"></div> lx "
+    "</div></div><div id=\"st\" style=\"text-align: center; margin-top: 12px\"></div></div></div><script> let thOk = "
+    "%d; let $ = document.getElementById.bind(document); let tEl = $(\"t\"); let hEl = $(\"h\"); let lEl = $(\"l\"); "
+    "let errMsg = \"ПОМИЛКА\"; tEl.innerHTML = thOk ? `${%d}°C` : errMsg; hEl.innerHTML = thOk ? `${%d}%%` : errMsg; "
+    "lEl.innerHTML = `${toLx(%lu)}`; let s = 5; function toLx(l) { return l; } async function update() { try { let { "
+    "th: { ok, t, h }, l, } = await (await fetch(\"/api\", { signal: AbortSignal.timeout(2000) })).json(); "
+    "tEl.innerHTML = ok ? `${t}°C` : errMsg; hEl.innerHTML = ok ? `${h}%%` : errMsg; lEl.innerHTML = `${toLx(l)}`; } "
+    "catch { await update(); } } let intrvl = setInterval(async function handle() { s--; let el = $(\"st\"); "
+    "el.innerHTML = `Оновлення через: ${s}`; if (s <= 0) { clearInterval(intrvl); el.innerHTML = `Оновлення...`; await "
+    "update(); s = 5; el.innerHTML = `Оновлення через: ${s}`; intrvl = setInterval(handle, 1000); } }, 1000); "
+    "</script></body></html>";
