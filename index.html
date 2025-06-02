@@ -50,7 +50,7 @@
       lEl.innerHTML = `${toLx(N("%lu"))}`;
       let s = 5;
       function toLx(l) {
-        return l;
+        return Math.round(0.01416 * Math.E ** (0.002928 * l) + 37.45);
       }
       async function update() {
         try {

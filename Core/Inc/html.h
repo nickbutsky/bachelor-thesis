@@ -11,10 +11,10 @@ const char *const htmlTemplate =
     "style=\"text-align: center; margin-top: 12px\"></div></div></div><script> let N = Number; let thOk = N(\"%d\"); "
     "let $ = document.getElementById.bind(document); let tEl = $(\"t\"); let hEl = $(\"h\"); let lEl = $(\"l\"); let "
     "errMsg = \"ПОМИЛКА\"; tEl.innerHTML = thOk ? `${N(\"%d\")}°C` : errMsg; hEl.innerHTML = thOk ? `${N(\"%d\")}%%` : "
-    "errMsg; lEl.innerHTML = `${toLx(N(\"%lu\"))}`; let s = 5; function toLx(l) { return l; } async function update() "
-    "{ try { let { th: { ok, t, h }, l, } = await (await fetch(\"/api\", { signal: AbortSignal.timeout(2000) "
-    "})).json(); tEl.innerHTML = ok ? `${t}°C` : errMsg; hEl.innerHTML = ok ? `${h}%%` : errMsg; lEl.innerHTML = "
-    "`${toLx(l)}`; } catch { await update(); } } let intrvl = setInterval(async function handle() { s--; let el = "
-    "$(\"st\"); el.innerHTML = `Оновлення через: ${s}`; if (s <= 0) { clearInterval(intrvl); el.innerHTML = "
-    "`Оновлення...`; await update(); s = 5; el.innerHTML = `Оновлення через: ${s}`; intrvl = setInterval(handle, "
-    "1000); } }, 1000); </script></body></html>";
+    "errMsg; lEl.innerHTML = `${toLx(N(\"%lu\"))}`; let s = 5; function toLx(l) { return Math.round(0.01416 * Math.E "
+    "** (0.002928 * l) + 37.45); } async function update() { try { let { th: { ok, t, h }, l, } = await (await "
+    "fetch(\"/api\", { signal: AbortSignal.timeout(2000) })).json(); tEl.innerHTML = ok ? `${t}°C` : errMsg; "
+    "hEl.innerHTML = ok ? `${h}%%` : errMsg; lEl.innerHTML = `${toLx(l)}`; } catch { await update(); } } let intrvl = "
+    "setInterval(async function handle() { s--; let el = $(\"st\"); el.innerHTML = `Оновлення через: ${s}`; if (s <= "
+    "0) { clearInterval(intrvl); el.innerHTML = `Оновлення...`; await update(); s = 5; el.innerHTML = `Оновлення "
+    "через: ${s}`; intrvl = setInterval(handle, 1000); } }, 1000); </script></body></html>";
